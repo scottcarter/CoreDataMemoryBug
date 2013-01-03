@@ -24,6 +24,7 @@
 		A76B13FD1695D6EC00AB7D79 /* PersonWithInverse.m in Sources */ = {isa = PBXBuildFile; fileRef = A76B13FC1695D6EC00AB7D79 /* PersonWithInverse.m */; };
 		A76B14001695D71700AB7D79 /* EmailNoInverse.m in Sources */ = {isa = PBXBuildFile; fileRef = A76B13FF1695D71700AB7D79 /* EmailNoInverse.m */; };
 		A76B14031695D72200AB7D79 /* EmailWithInverse.m in Sources */ = {isa = PBXBuildFile; fileRef = A76B14021695D72200AB7D79 /* EmailWithInverse.m */; };
+		A7EC0BDF169625F8006BFA74 /* BugReport in Resources */ = {isa = PBXBuildFile; fileRef = A7EC0BDE169625F8006BFA74 /* BugReport */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -53,6 +54,7 @@
 		A76B13FF1695D71700AB7D79 /* EmailNoInverse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EmailNoInverse.m; sourceTree = "<group>"; };
 		A76B14011695D72200AB7D79 /* EmailWithInverse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EmailWithInverse.h; sourceTree = "<group>"; };
 		A76B14021695D72200AB7D79 /* EmailWithInverse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EmailWithInverse.m; sourceTree = "<group>"; };
+		A7EC0BDE169625F8006BFA74 /* BugReport */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = BugReport; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -101,6 +103,7 @@
 		A76B139C1694D4D700AB7D79 /* CoreDataMemoryBug */ = {
 			isa = PBXGroup;
 			children = (
+				A7EC0BDE169625F8006BFA74 /* BugReport */,
 				A76B13C81694D6E700AB7D79 /* Main */,
 				A76B13BB1694D5C900AB7D79 /* Core Data */,
 				A76B139D1694D4D700AB7D79 /* Supporting Files */,
@@ -207,6 +210,7 @@
 				A76B13AB1694D4D700AB7D79 /* Default@2x.png in Resources */,
 				A76B13AD1694D4D700AB7D79 /* Default-568h@2x.png in Resources */,
 				A76B13B01694D4D700AB7D79 /* MainStoryboard.storyboard in Resources */,
+				A7EC0BDF169625F8006BFA74 /* BugReport in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
