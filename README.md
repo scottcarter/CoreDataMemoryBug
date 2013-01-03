@@ -1,5 +1,4 @@
 
-
 This project is intended to demonstrate what appear to be bugs in how Core Data 
 manages memory.  In several cases, Core Data is not releasing allocated memory as expected.
  
@@ -11,7 +10,10 @@ demonstrate different issues.
 
 
 My Environment:
+
 Xcode 4.5.2 (4G2008a)
+
 Mac OS X Lion 10.7.5 (11G63)
+
 iPhone 6.0 simulator
 
