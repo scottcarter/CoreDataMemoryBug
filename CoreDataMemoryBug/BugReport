@@ -1,46 +1,24 @@
 
 
-Problem Report Title: Core Data has several issues related to memory allocation.
+Update 1/5/13:
 
+The original bug report filed with Apple for multiple issues has been split into multiple
+bug reports, one for each specific issue.
+
+I could not reproduce my previous issue with MOMC_NO_INVERSE_RELATIONSHIP_WARNINGS reported
+in the original report, so am not re-filing that issue as a bug at this time.
+
+The six bug reports replacing the original follow.
+
+============================================================================
+
+
+Problem Report Title: Core Data: Calling refreshObject not fully releasing allocated memory
 
 Summary:
 
-I've discovered several different types of issues with Core Data and memory allocation.
-
-In some situations Core Data is not fully releasing memory.  These
-include faulting of managed objects with refreshObject and a managed object context reset.
-In some cases a refreshObject on all objects followed by a reset works to release memory, 
-but not in every scenario:
-
-- A reset in the same event loop iteration as a refreshObject behaves differently than if 
-  the reset were in a different event loop iteration (achieved with NSTimer call).
-
-- If an inverse relationship between entities exists (retain loop), the refreshObject/reset 
-  combination is also not effective.
-
-- When one calls setUndoManager:nil (see below)
-
-
-Using a bigger hammer to release memory seems to generally work - removing and then recreating
-the persistent store for a context.   The exception is when one calls setUndoManager:nil in the
-case of using an inverse relationship (see below).
-
-
-Calling setUndoManager:nil on a managed object context (which should have no effect in iOS since
-the default is nil) has some side effects:
-
-- A combination of refreshObject/context reset is no longer effective (even with no inverse relationships)
-  at releasing all memory.
-- A hang is caused in a call to removePersistentStore of the persistentStoreCoordinator of a 
-  managed object context.  This only happens when an inverse relationship is used between entities.
-
-
-References to NSTemporaryObjectID_default are not released by Core Data unless one
-obtains permanent ids for managed objects prior to a save.
-
-The flag MOMC_NO_INVERSE_RELATIONSHIP_WARNINGS does not work (when set to YES) to suppress all
-warnings about a missing inverse relationship.  I've done this both for PROJECT and TARGETS
-build settings, but can only elimiate one of a pair of identical warnings.
+Core Data is not fully releasing allocated memory when refreshObject is used to fault
+all managed objects.
 
 
 Steps to Reproduce:
@@ -53,33 +31,36 @@ Project has been setup with detailed test cases to easily replicate individual i
 
 Detailed information in the file CoreDataMemoryBugViewController.m
 
+Refer to TEST_CASE 1 (baseline) and TEST_CASE 2 (illustrates the problem)
+
 
 Expected Results:
 
-Core Data releases all memory when all managed objects are faulted or when a context reset is issued.
-
-setUndoManager:nil has no effect under iOS.
-
-References to NSTemporaryObjectID_default are automatically released, even if permanent ids are not
-obtained.
-
-Setting MOMC_NO_INVERSE_RELATIONSHIP_WARNINGS to YES suppresses all associated warnings.
-
+Core Data releases all memory when all managed objects are faulted.
 
 
 Actual Results:
 
-There are various issues as described above.
+All memory held by Core Data is not being released.
+
 
 Regression:
 
 Individual unit test cases are available in the project at
 https://github.com/scottcarter/CoreDataMemoryBug.git
 
+See TEST_CASE 1, TEST_CASE 2
+
 
 Notes:
 
+The original bug was 12952520 which covered several issues.  That bug was closed and
+individual bug reports were then filed including this one.
 
+For a overview of all the issues (included as test cases in the GitHub project referenced above), 
+you can refer to bug 12952520 or check out the blog post at:
+
+http://finalize.com/2013/01/04/core-data-issues-with-memory-allocation/
 
 
 My Environment:
@@ -87,5 +68,337 @@ My Environment:
 Xcode 4.5.2 (4G2008a)
 Mac OS X Lion 10.7.5 (11G63)
 iPhone 6.0 simulator
+
+
+===========================================================================
+
+Problem Report Title: Core Data: Calling reset on managed object context not releasing allocated memory
+
+
+Summary:
+
+Core Data is not fully releasing allocated memory when context reset is issued.
+
+Steps to Reproduce:
+
+Download and execute the project at
+https://github.com/scottcarter/CoreDataMemoryBug.git
+
+Project has been setup with detailed test cases to easily replicate individual issues
+(set a define to choose a test case).
+
+Detailed information in the file CoreDataMemoryBugViewController.m
+
+Refer to TEST_CASE 1 (baseline) and TEST_CASE 3 (illustrates the problem)
+
+
+Expected Results:
+
+Core Data releases all memory when context reset is issued.
+
+
+Actual Results:
+
+All memory held by Core Data is not being released.
+
+
+Regression:
+
+Individual unit test cases are available in the project at
+https://github.com/scottcarter/CoreDataMemoryBug.git
+
+See TEST_CASE 1, TEST_CASE 3
+
+
+Notes:
+
+The original bug was 12952520 which covered several issues.  That bug was closed and
+individual bug reports were then filed including this one.
+
+For a overview of all the issues (included as test cases in the GitHub project referenced above), 
+you can refer to bug 12952520 or check out the blog post at:
+
+http://finalize.com/2013/01/04/core-data-issues-with-memory-allocation/
+
+
+My Environment:
+
+Xcode 4.5.2 (4G2008a)
+Mac OS X Lion 10.7.5 (11G63)
+iPhone 6.0 simulator
+
+
+===========================================================================
+
+Problem Report Title: Core Data: Context reset in different event loop than refreshObject behaves differently
+
+Summary:
+
+When no inverse relationship exists between entities, I found that faulting all managed objects
+followed by a context reset would release all Core Data allocated memory (faulting or reset alone would not
+do this).
+
+The problem this bug report addresses is that the refresh/reset combination is only effective if
+reset is issued in a different event loop (using NSTimer).   If the context reset follows the faulting of
+objects in the same event loop, not all Core Data allocated memory is released.
+
+
+Steps to Reproduce:
+
+Download and execute the project at
+https://github.com/scottcarter/CoreDataMemoryBug.git
+
+Project has been setup with detailed test cases to easily replicate individual issues
+(set a define to choose a test case).
+
+Detailed information in the file CoreDataMemoryBugViewController.m
+
+Refer to
+ TEST_CASE 1 (baseline) 
+ TEST_CASE 5 Reset not in same event loop iteration as Refresh - this works.
+ TEST_CASE 6 Reset in same event loop iteration as Refresh - this is the problem case.
+
+
+
+Expected Results:
+
+I would not expect the context reset to behave any differently between TEST_CASE 5 and
+TEST_CASE 6.
+
+
+Actual Results:
+
+TEST_CASE 6 is illustrating that not all Core Data memory is being released.
+
+
+Regression:
+
+Individual unit test cases are available in the project at
+https://github.com/scottcarter/CoreDataMemoryBug.git
+
+See TEST_CASE 1, TEST_CASE 5, TEST_CASE 6
+
+
+Notes:
+
+The original bug was 12952520 which covered several issues.  That bug was closed and
+individual bug reports were then filed including this one.
+
+For a overview of all the issues (included as test cases in the GitHub project referenced above), 
+you can refer to bug 12952520 or check out the blog post at:
+
+http://finalize.com/2013/01/04/core-data-issues-with-memory-allocation/
+
+
+My Environment:
+
+Xcode 4.5.2 (4G2008a)
+Mac OS X Lion 10.7.5 (11G63)
+iPhone 6.0 simulator
+
+
+===========================================================================
+
+Problem Report Title: Core Data: refreshObject followed by context reset not fully releasing memory with inverse relationship
+
+Summary:
+
+When an inverse relationship exists between entities, I found that faulting all managed objects
+followed by a context reset would not release all Core Data allocated memory.
+
+
+Steps to Reproduce:
+
+Download and execute the project at
+https://github.com/scottcarter/CoreDataMemoryBug.git
+
+Project has been setup with detailed test cases to easily replicate individual issues
+(set a define to choose a test case).
+
+Detailed information in the file CoreDataMemoryBugViewController.m
+
+Refer to
+
+TEST_CASE 100 (baseline)
+TEST_CASE 104 With inverse relationship, memory not fully released - this is problem case.
+
+TEST_CASE 5 Without inverse relationship memory fully released - use for comparison to TEST_CASE 104.
+
+
+Expected Results:
+
+I would expect TEST_CASE 104 and TEST_CASE 5 to behave identically - that is all Core Data allocated
+memory fully released after faulting all objects followed by context reset.
+
+
+
+Actual Results:
+
+TEST_CASE 104 is illustrating that not all Core Data memory is being released.
+
+
+Regression:
+
+Individual unit test cases are available in the project at
+https://github.com/scottcarter/CoreDataMemoryBug.git
+
+See TEST_CASE 100, TEST_CASE 104, TEST_CASE 5
+
+
+
+Notes:
+The original bug was 12952520 which covered several issues.  That bug was closed and
+individual bug reports were then filed including this one.
+
+For a overview of all the issues (included as test cases in the GitHub project referenced above), 
+you can refer to bug 12952520 or check out the blog post at:
+
+http://finalize.com/2013/01/04/core-data-issues-with-memory-allocation/
+
+
+My Environment:
+
+Xcode 4.5.2 (4G2008a)
+Mac OS X Lion 10.7.5 (11G63)
+iPhone 6.0 simulator
+
+
+===========================================================================
+
+Problem Report Title: Core Data: setUndoManager:nil on managed object context has adverse side effects in iOS
+
+Summary: 
+According to the documentation in the NSManagedObjectContext Class Reference,
+setUndoManager is available for iOS 3.0 and later and on iOS, the undo manager is nil by default. 
+
+I would not expect that calling setUndoManager:nil would have any effect; however I found that
+it did have two adverse side effects:
+
+Case A: For the case of no inverse relationship between entities, faulting all managed objects followed 
+by a context reset is no longer effective at releasing all memory allocated by Core Data.
+
+Case B: A hang is caused in a call to removePersistentStore of the persistentStoreCoordinator of a 
+managed object context.  This only happens when an inverse relationship is used between entities.
+
+
+Steps to Reproduce:
+
+Download and execute the project at
+https://github.com/scottcarter/CoreDataMemoryBug.git
+
+Project has been setup with detailed test cases to easily replicate individual issues
+(set a define to choose a test case).
+
+Detailed information in the file CoreDataMemoryBugViewController.m
+
+Case A:
+TEST_CASE 5 - Baseline. Not calling setUndoManager:nil.  All memory released as expected.
+TEST_CASE 14 - Problem case.  Calling setUndoManager:nil.  Core Data memory not fully released.
+
+Case B:
+TEST_CASE 103 - Baseline.  No hang.
+TEST_CASE 113 - Hang occurs when setUndoManager:nil is previously called on managed object context.
+
+
+Expected Results:
+
+The call to setUndoManager:nil has no effect, since the default under iOS is nil.
+
+
+Actual Results:
+
+The call to setUndoManager:nil is changing some functional behaviour.
+
+
+Regression:
+
+Individual unit test cases are available in the project at
+https://github.com/scottcarter/CoreDataMemoryBug.git
+
+See
+TEST_CASE 5, TEST_CASE 14, TEST_CASE 103, TEST_CASE 113
+
+
+Notes:
+The original bug was 12952520 which covered several issues.  That bug was closed and
+individual bug reports were then filed including this one.
+
+For a overview of all the issues (included as test cases in the GitHub project referenced above), 
+you can refer to bug 12952520 or check out the blog post at:
+
+http://finalize.com/2013/01/04/core-data-issues-with-memory-allocation/
+
+
+My Environment:
+
+Xcode 4.5.2 (4G2008a)
+Mac OS X Lion 10.7.5 (11G63)
+iPhone 6.0 simulator
+
+
+===========================================================================
+
+
+Problem Report Title: Core Data: References to NSTemporaryObjectID_default not released unless permanent ids obtained
+
+Summary:
+
+After a save of a UIManagedDocument, I noted that there were lots of references to 
+NSTemporaryObjectID_default that were not being released by Core Data.
+
+If I first obtained permanent ids for all managed objects prior to a save, these
+references were not present after the save.
+
+
+Steps to Reproduce:
+
+Download and execute the project at
+https://github.com/scottcarter/CoreDataMemoryBug.git
+
+Project has been setup with detailed test cases to easily replicate individual issues
+(set a define to choose a test case).
+
+Detailed information in the file CoreDataMemoryBugViewController.m
+
+Refer to 
+TEST_CASE 103 - Baseline.   No references to NSTemporaryObjectID_default since permanent ids obtained.
+TEST_CASE 1000 - Problem case.  References to NSTemporaryObjectID_default present after save and never released.
+
+
+Expected Results:
+
+I would expect Core Data to eventually release references to NSTemporaryObjectID_default after a save
+without needing to obtain permanent ids.
+
+
+Actual Results:
+
+References to NSTemporaryObjectID_default after a save not released unless permanent ids obtained.
+
+
+Regression:
+Individual unit test cases are available in the project at
+https://github.com/scottcarter/CoreDataMemoryBug.git
+
+See TEST_CASE 103, TEST_CASE 1000
+
+
+Notes:
+
+The original bug was 12952520 which covered several issues.  That bug was closed and
+individual bug reports were then filed including this one.
+
+For a overview of all the issues (included as test cases in the GitHub project referenced above), 
+you can refer to bug 12952520 or check out the blog post at:
+
+http://finalize.com/2013/01/04/core-data-issues-with-memory-allocation/
+
+
+My Environment:
+
+Xcode 4.5.2 (4G2008a)
+Mac OS X Lion 10.7.5 (11G63)
+iPhone 6.0 simulator
+
 
 
